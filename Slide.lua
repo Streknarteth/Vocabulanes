@@ -45,7 +45,8 @@ function Slide:reset()
     self.num_options = 2
     self.x = 0
     self.y = -self.height
-    self.dy = 0
+    self.dy = 25
+    self.correct = math.random(1,self.num_options)
 end
 
 function Slide:update(dt)
