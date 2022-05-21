@@ -1116,12 +1116,13 @@ function love.load()
 
     -- set up our sound effects; later, we can just index this table and
     -- call each entry's `play` method
+    -- Irreducible by ComaStudio
     sounds = {
         ['correct'] = love.audio.newSource('sounds/paddle_hit.wav', 'static'),
         ['death'] = love.audio.newSource('sounds/score.wav', 'static'),
-        ['speed_up'] = love.audio.newSource('sounds/wall_hit.wav', 'static')
+        ['speed_up'] = love.audio.newSource('sounds/wall_hit.wav', 'static'),
+        ['background'] = love.audio.newSource('sounds/background.mp3','stream'),
     }
-    
     -- initialize our virtual resolution, which will be rendered within our
     -- actual window no matter its dimensions
     push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -1190,6 +1191,9 @@ function distractors(tbl, englishWord)
 end
 
 function love.update(dt)
+    if not sounds['background']:isPlaying() then
+        love.audio.play(sounds['background'])
+    end
     if gameState == 'start' then
         englishWord = randomkey(TRANSLATION_TBL)
         swedishWords = distractors(TRANSLATION_TBL,englishWord)   
