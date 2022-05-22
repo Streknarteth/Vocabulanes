@@ -1086,6 +1086,8 @@ TRANSLATION_TBL = {
     ["claim"] = "krav",
     ["continent"] = "kontinent"    
 }
+REVERSED_TBL = {}
+
 
 englishWord = ""
 
@@ -1123,6 +1125,8 @@ function love.load()
         ['speed_up'] = love.audio.newSource('sounds/wall_hit.wav', 'static'),
         ['background'] = love.audio.newSource('sounds/background.mp3','stream'),
     }
+
+
     -- initialize our virtual resolution, which will be rendered within our
     -- actual window no matter its dimensions
     push:setupScreen(VIRTUAL_WIDTH, VIRTUAL_HEIGHT, WINDOW_WIDTH, WINDOW_HEIGHT, {
@@ -1138,7 +1142,7 @@ function love.load()
     player1 = Paddle(10, VIRTUAL_HEIGHT-70, 10, 10)
 
     -- place a ball in the middle of the screen
-    slide = Slide(2, 0, -60, VIRTUAL_WIDTH, 60,25)
+    slide = Slide(2, 0, -60, VIRTUAL_WIDTH, 60, 25, 0)
 
     -- initialize score variables
     player1Score = 0
@@ -1150,12 +1154,6 @@ function love.load()
     gameState = 'start'
 end
 
---[[
-    Called whenever we change the dimensions of our window, as by dragging
-    out its bottom corner, for example. In this case, we only need to worry
-    about calling out to `push` to handle the resizing. Takes in a `w` and
-    `h` variable representing width and height, respectively.
-]]
 function love.resize(w, h)
     push:resize(w, h)
 end
@@ -1203,19 +1201,32 @@ function love.update(dt)
             if slide.x+(slide.width/slide.num_options)*(slide.correct-1) < player1.x+player1.width/2 and
             slide.x+(slide.width/slide.num_options)*(slide.correct) > player1.x+player1.width/2 then
                 player1Score = player1Score + 1
+                sounds['correct']:play()
                 if player1Score % 3 == 0 and #OBSTACLE_TBL < 6 then
                     OBSTACLE_TBL[player1Score/3] = Obstacle(math.min(60,math.max(20,math.random(10,#OBSTACLE_TBL*15))), math.min(60,math.max(20,math.random(10,#OBSTACLE_TBL*15))), math.random(30,slide.dy))
                 end
                 if player1Score % 5 == 0 and slide.num_options < 5 then
                     FONT_HEIGHT = FONT_HEIGHT - 2
                     largeFont = love.graphics.newFont('ARLRDBD.ttf', FONT_HEIGHT, 'normal', 2)
-                    slide = Slide(slide.num_options+1, 0, -60, VIRTUAL_WIDTH, 60, math.min(80, slide.dy*1.05))
+                    slide = Slide(slide.num_options+1, 0, -60, VIRTUAL_WIDTH, 60, math.min(80, slide.dy*1.05), slide.reverse)
                 else
-                    slide = Slide(slide.num_options, 0, -60, VIRTUAL_WIDTH, 60, math.min(80, slide.dy*1.05))
+                    slide = Slide(slide.num_options, 0, -60, VIRTUAL_WIDTH, 60, math.min(80, slide.dy*1.05), slide.reverse)
                 end
-                sounds['correct']:play()
-                englishWord = randomkey(TRANSLATION_TBL)
-                swedishWords = distractors(TRANSLATION_TBL,englishWord)
+                if player1Score % 3 == 0 then
+                    slide.reverse = slide.reverse + 1
+                end
+
+                if slide.reverse % 2 == 0 then
+                    englishWord = randomkey(TRANSLATION_TBL)
+                    swedishWords = distractors(TRANSLATION_TBL,englishWord)
+                else 
+                    for k,v in pairs(TRANSLATION_TBL) do
+                        REVERSED_TBL[v] = k
+                    end
+                    englishWord = randomkey(REVERSED_TBL)
+                    swedishWords = distractors(REVERSED_TBL,englishWord)
+                end
+
             else
                 sounds['death']:play()
                 gameState = 'death'
@@ -1223,6 +1234,9 @@ function love.update(dt)
                     OBSTACLE_TBL[i]:reset()
                 end
                 OBSTACLE_TBL = {}
+                if slide.reverse % 2 ~= 0 then
+                    englishWord = REVERSED_TBL[englishWord]
+                end
                 slide:reset()
                 FONT_HEIGHT = 16
             end
@@ -1236,6 +1250,9 @@ function love.update(dt)
             if OBSTACLE_TBL[i]:collides(player1) then
                 sounds['death']:play()
                 gameState = 'death'
+                if slide.reverse % 2 ~= 0 then
+                    englishWord = REVERSED_TBL[englishWord]
+                end
                 slide:reset()
                 for i = 1, #OBSTACLE_TBL,1 do
                     OBSTACLE_TBL[i]:reset()
@@ -1246,6 +1263,9 @@ function love.update(dt)
         end
         if player1Score == 100 then
             gameState = 'done'
+            if slide.reverse % 2 ~= 0 then
+                englishWord = REVERSED_TBL[englishWord]
+            end
             slide:reset()
             for i = 1, #OBSTACLE_TBL,1 do
                 OBSTACLE_TBL[i]:reset()
@@ -1287,12 +1307,6 @@ function love.update(dt)
     player1:update(dt)
 end
 
---[[
-    A callback that processes key strokes as they happen, just the once.
-    Does not account for keys that are held down, which is handled by a
-    separate function (`love.keyboard.isDown`). Useful for when we want
-    things to happen right away, just once, like when we want to quit.
-]]
 function love.keypressed(key)
     -- `key` will be whatever key this callback detected as pressed
     if key == 'escape' then
@@ -1316,32 +1330,35 @@ function love.keypressed(key)
     end
 end
 
---[[
-    Called each frame after update; is responsible simply for
-    drawing all of our game objects and more to the screen.
-]]
+
 function love.draw()
     -- begin drawing with push, in our virtual resolution
     push:start()
 
-    love.graphics.clear(40/255, 45/255, 52/255, 255/255)
+    love.graphics.clear(0/255,0/255,0/255,255/255)
     
     -- render different things depending on which part of the game we're in
     if gameState == 'start' then
         -- UI messages
         love.graphics.setFont(smallFont)
+        love.graphics.setColor(255/255,195/255,0/255,255/255)
         love.graphics.printf('Welcome to Vocabulanes!', 0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
         love.graphics.printf('Press space to return to this menu at any time.', 0, 50, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'play' then
         love.graphics.setFont(scoreFont)
+        if slide.reverse % 10 == 0 then
+            love.graphics.setColor(255/255,195/255,0/255,255/255)
+        else
+            love.graphics.setColor(255/255,87/255,51/255,255/255)
+        end
         love.graphics.printf(englishWord, 0, VIRTUAL_HEIGHT-50, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'death' then
         love.graphics.setFont(scoreFont)
         love.graphics.setColor(255/255, 0, 0, 255/255)
         love.graphics.printf(englishWord, 0, VIRTUAL_HEIGHT/2-40, VIRTUAL_WIDTH, 'center')
         love.graphics.printf(TRANSLATION_TBL[englishWord], 0, VIRTUAL_HEIGHT/2+10, VIRTUAL_WIDTH, 'center')
-        love.graphics.setColor(255, 255, 255, 255)
+        love.graphics.setColor(255/255,195/255,0/255,255/255)
         love.graphics.setFont(smallFont)
         love.graphics.printf('Press Enter to begin!', 0, VIRTUAL_HEIGHT-30, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'done' then
@@ -1353,12 +1370,19 @@ function love.draw()
     end
 
     -- show the score before ball is rendered so it can move over the text
-    displayScore()
     
     player1:render()
 
+    displayScore()
+
     love.graphics.setFont(largeFont)
-    slide:render(TRANSLATION_TBL, englishWord, swedishWords)
+                    
+    if slide.reverse % 2 == 0 then
+        slide:render(TRANSLATION_TBL, englishWord, swedishWords)
+    else
+        slide:render(REVERSED_TBL, englishWord, swedishWords)
+    end
+    
 
     if gameState == 'play' then
         for i = 1, #OBSTACLE_TBL,1 do
@@ -1374,7 +1398,7 @@ end
 ]]
 function displayScore()
     love.graphics.setFont(smallFont)
-    love.graphics.setColor(0, 255/255, 0, 255/255)
+    love.graphics.setColor(242/255, 174/255, 255/255, 255/255)
     love.graphics.print('Score: ' .. tostring(player1Score), 10, 10)
-    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.setColor(255/255,87/255,51/255,255/255)
 end

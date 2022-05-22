@@ -46,5 +46,5 @@ function Obstacle:render()
     love.graphics.setColor(self.colorR,self.colorG,self.colorB,250)
     --love.graphics.setColor(255/255, 0, 0, 255/255)
     love.graphics.rectangle('line', self.x, self.y, self.width, self.height)
-    love.graphics.setColor(255, 255, 255, 255)
+    love.graphics.setColor(255/255,195/255,0/255,255/255)
 end

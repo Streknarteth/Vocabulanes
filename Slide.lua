@@ -14,7 +14,7 @@
 
 Slide = Class{}
 
-function Slide:init(num_options, x, y, width, height, dy)
+function Slide:init(num_options, x, y, width, height, dy, reverse)
     self.num_options = num_options
     self.x = x
     self.y = y
@@ -22,6 +22,7 @@ function Slide:init(num_options, x, y, width, height, dy)
     self.height = height
     self.dy = dy
     self.correct = math.random(1,num_options)
+    self.reverse = reverse
 end
 
 function Slide:collides(paddle)
@@ -47,6 +48,7 @@ function Slide:reset()
     self.y = -self.height
     self.dy = 25
     self.correct = math.random(1,self.num_options)
+    self.reverse = 0
 end
 
 function Slide:update(dt)
@@ -57,18 +59,26 @@ function Slide:render(tbl, englishWord, distractors)
     
     for i = 1,self.num_options,1 do
         if (i % 2 == 0) then
-            love.graphics.setColor(100/255, 100/255, 0, 255/255)
+            love.graphics.setColor(117/255, 142/255, 183/255, 100/255)
         else 
-            love.graphics.setColor(200/255, 200/255, 0, 100/255)
+            love.graphics.setColor(165/255, 202/255, 210, 100/255)
         end
+        
+        love.graphics.rectangle('fill', self.x+(self.width/self.num_options)*(i-1), self.y, self.width/self.num_options, self.height)
 
         if i == self.correct then 
-            love.graphics.rectangle('fill', self.x+(self.width/self.num_options)*(i-1), self.y, self.width/self.num_options, self.height)
-            love.graphics.setColor(255, 255, 255, 255)
+            if self.reverse % 2 == 0 then
+                love.graphics.setColor(255/255,87/255,51/255,255/255)
+            else
+                love.graphics.setColor(255/255,195/255,0/255,255/255)
+            end
             love.graphics.printf(tbl[englishWord], self.x+(self.width/self.num_options)*(i-1), self.y+self.height/2-8, self.width/self.num_options, 'center')
         else
-            love.graphics.rectangle('fill', self.x+(self.width/self.num_options)*(i-1), self.y, self.width/self.num_options, self.height)
-            love.graphics.setColor(255, 255, 255, 255)
+            if self.reverse % 2 == 0 then
+                love.graphics.setColor(255/255,87/255,51/255,255/255)
+            else
+                love.graphics.setColor(255/255,195/255,0/255,255/255)
+            end
             love.graphics.printf(distractors[i], self.x+(self.width/self.num_options)*(i-1), self.y+self.height/2-8, self.width/self.num_options, 'center')     
         end
     end
