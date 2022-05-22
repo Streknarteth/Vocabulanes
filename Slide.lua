@@ -56,7 +56,6 @@ function Slide:update(dt)
 end
 
 function Slide:render(tbl, englishWord, distractors)
-    
     for i = 1,self.num_options,1 do
         if (i % 2 == 0) then
             love.graphics.setColor(117/255, 142/255, 183/255, 100/255)

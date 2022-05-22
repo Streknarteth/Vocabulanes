@@ -43,7 +43,7 @@ FONT_HEIGHT = 16
 -- player movement speed
 PADDLE_SPEED = 200
 
-TRANSLATION_TBL = {
+FRENCH_TBL = {
     ["as"] = "comme",
     ["I"] = "je",
     ["his"] = "son",
@@ -2089,6 +2089,8 @@ SWEDISH_TBL = {
     ["claim"] = "krav",
     ["continent"] = "kontinent"    
 }
+
+TRANSLATION_TBL = FRENCH_TBL
 REVERSED_TBL = {}
 
 
@@ -2215,7 +2217,7 @@ function love.update(dt)
                 else
                     slide = Slide(slide.num_options, 0, -60, VIRTUAL_WIDTH, 60, math.min(80, slide.dy*1.05), slide.reverse)
                 end
-                if player1Score % 3 == 0 then
+                if player1Score % 10 == 0 then
                     slide.reverse = slide.reverse + 1
                 end
 
@@ -2320,7 +2322,14 @@ function love.keypressed(key)
         slide:reset()
         -- reset scores to 0
         player1Score = 0
-
+    elseif key == '1' then
+        if gameState == 'start' then
+            TRANSLATION_TBL = FRENCH_TBL
+        end
+    elseif key == '2' then
+        if gameState == 'start' then
+            TRANSLATION_TBL = SWEDISH_TBL
+        end
     elseif key == 'enter' or key == 'return' then
         if gameState == 'done' or gameState == 'death' or gameState == 'start' then
             englishWord = randomkey(TRANSLATION_TBL)
@@ -2346,11 +2355,26 @@ function love.draw()
         love.graphics.setFont(smallFont)
         love.graphics.setColor(255/255,195/255,0/255,255/255)
         love.graphics.printf('Welcome to Vocabulanes!', 0, 10, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press Enter to begin!', 0, 20, VIRTUAL_WIDTH, 'center')
-        love.graphics.printf('Press space to return to this menu at any time.', 0, 50, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('WASD or Arrow Keys to move.', 0, 20, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Pick a language!', 0, 50, VIRTUAL_WIDTH, 'center')
+        height = 100
+        if TRANSLATION_TBL == FRENCH_TBL then
+            love.graphics.setFont(largeFont)
+            height = height-5
+        end
+        love.graphics.printf('1. French', 0, height, VIRTUAL_WIDTH/2, 'center')
+        love.graphics.setFont(smallFont)
+        height = 100
+        if TRANSLATION_TBL == SWEDISH_TBL then
+            love.graphics.setFont(largeFont)  
+            height = height-5
+        end
+        love.graphics.printf('2. Swedish', VIRTUAL_WIDTH/2, height, VIRTUAL_WIDTH/2, 'center')
+        love.graphics.setFont(smallFont)
+        love.graphics.printf('Press return to start.', 0, VIRTUAL_HEIGHT-50, VIRTUAL_WIDTH,'center')
     elseif gameState == 'play' then
         love.graphics.setFont(scoreFont)
-        if slide.reverse % 10 == 0 then
+        if slide.reverse % 2 == 0 then
             love.graphics.setColor(255/255,195/255,0/255,255/255)
         else
             love.graphics.setColor(255/255,87/255,51/255,255/255)
@@ -2363,7 +2387,8 @@ function love.draw()
         love.graphics.printf(TRANSLATION_TBL[englishWord], 0, VIRTUAL_HEIGHT/2+10, VIRTUAL_WIDTH, 'center')
         love.graphics.setColor(255/255,195/255,0/255,255/255)
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Press Enter to begin!', 0, VIRTUAL_HEIGHT-30, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press Enter to begin!', 0, VIRTUAL_HEIGHT-60, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('Press space to return to menu.', 0, VIRTUAL_HEIGHT-60, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'done' then
         -- UI messages
         love.graphics.setFont(largeFont)
