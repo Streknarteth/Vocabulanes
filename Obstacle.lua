@@ -7,7 +7,7 @@ function Obstacle:init(width, height, maxspeed)
     self.y = -self.height
     self.maxspeed = maxspeed
     self.dy = math.random(10,self.maxspeed)
-    self.dx = math.random(-40,40)
+    self.dx = math.random(-30,30)
     self.colorR = math.random(0,255)/255
     self.colorG = math.random(0,255)/255
     self.colorB = math.random(0,255)/255
@@ -30,7 +30,7 @@ function Obstacle:reset()
     self.x = math.random(0,VIRTUAL_WIDTH)
     self.y = -self.height
     self.dy = math.random(10,self.maxspeed)
-    self.dx = math.random(-40,40)
+    self.dx = math.random(-30,30)
     self.colorR = math.random(0,255)/255
     self.colorG = math.random(0,255)/255
     self.colorB = math.random(0,255)/255
