@@ -2115,7 +2115,7 @@ testingword = ''
 testingtbl = {}
 newBubbleWord = true
 
-level = true
+level = false
 
 --[[
     Called just once at the beginning of the game; used to set up
@@ -2256,7 +2256,11 @@ function love.update(dt)
                         slide.reverse = slide.reverse + 1
                     end
                     if player1Score == 20 then
-                        level = false
+                        if level == true then
+                            level = false
+                        elseif level == false then
+                            level = true
+                        end
                     end
                     if slide.reverse % 2 == 0 then
                         englishWord = randomkey(TRANSLATION_TBL)
@@ -2322,7 +2326,7 @@ function love.update(dt)
                     else 
                         y = math.random(player1.y-40,VIRTUAL_HEIGHT-20)
                     end
-                    BUBBLE_TBL[i] = Bubble(x,y,20,math.random(-90,90),math.random(-90,90),utf8_sub2(TRANSLATION_TBL[englishWord],i,i))
+                    BUBBLE_TBL[i] = Bubble(x,y,20,math.random(0,180),math.random(0,180),utf8_sub2(TRANSLATION_TBL[englishWord],i,i))
                 end
                 newBubbleWord = false
             end
@@ -2348,8 +2352,12 @@ function love.update(dt)
                         player1Score = player1Score + 1
                         correctBubble = 1
                     end
-                    if player1Score == 30 then
-                        level = true
+                    if player1Score == 20 then
+                        if level == true then
+                            level = false
+                        elseif level == false then
+                            level = true
+                        end
                     end
                 end
             end
@@ -2575,26 +2583,26 @@ function bubbleUpdate(dt)
             if BUBBLE_TBL[i].popped == false then
                 for j=i+1,#BUBBLE_TBL,1 do 
                     if BUBBLE_TBL[i]:bounce(BUBBLE_TBL[j]) then
-                        if BUBBLE_TBL[i].x < BUBBLE_TBL[j].x then
-                            BUBBLE_TBL[i].x = BUBBLE_TBL[i].x-2
-                            BUBBLE_TBL[j].x = BUBBLE_TBL[j].x+2
-                        else
-                            BUBBLE_TBL[i].x = BUBBLE_TBL[i].x+2
-                            BUBBLE_TBL[j].x = BUBBLE_TBL[j].x-2
-                        end
-                        if BUBBLE_TBL[i].y < BUBBLE_TBL[j].y then
-                            BUBBLE_TBL[i].y = BUBBLE_TBL[i].y-2
-                            BUBBLE_TBL[j].y = BUBBLE_TBL[j].y+2
-                        else
-                            BUBBLE_TBL[i].y = BUBBLE_TBL[i].y+2
-                            BUBBLE_TBL[j].y = BUBBLE_TBL[j].y-2
-                        end
                         tempDX = BUBBLE_TBL[j].dx
                         tempDY = BUBBLE_TBL[j].dy
                         BUBBLE_TBL[j].dx = BUBBLE_TBL[i].dx
                         BUBBLE_TBL[j].dy = BUBBLE_TBL[i].dy
                         BUBBLE_TBL[i].dx = tempDX
                         BUBBLE_TBL[i].dy = tempDY
+                    end
+                    if BUBBLE_TBL[i].x < BUBBLE_TBL[j].x then
+                        BUBBLE_TBL[i].x = BUBBLE_TBL[i].x-5
+                        BUBBLE_TBL[j].x = BUBBLE_TBL[j].x+5
+                    else
+                        BUBBLE_TBL[i].x = BUBBLE_TBL[i].x+5
+                        BUBBLE_TBL[j].x = BUBBLE_TBL[j].x-5
+                    end
+                    if BUBBLE_TBL[i].y < BUBBLE_TBL[j].y then
+                        BUBBLE_TBL[i].y = BUBBLE_TBL[i].y-5
+                        BUBBLE_TBL[j].y = BUBBLE_TBL[j].y+5
+                    else
+                        BUBBLE_TBL[i].y = BUBBLE_TBL[i].y+5
+                        BUBBLE_TBL[j].y = BUBBLE_TBL[j].y-5
                     end
                 end
 
