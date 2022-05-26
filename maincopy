@@ -2583,6 +2583,7 @@ function bubbleUpdate(dt)
             if BUBBLE_TBL[i].popped == false then
                 for j=i+1,#BUBBLE_TBL,1 do 
                     if BUBBLE_TBL[i]:bounce(BUBBLE_TBL[j]) then
+                                                
                         tempDX = BUBBLE_TBL[j].dx
                         tempDY = BUBBLE_TBL[j].dy
                         BUBBLE_TBL[j].dx = BUBBLE_TBL[i].dx
@@ -2626,3 +2627,28 @@ function bubbleUpdate(dt)
     end
 end
 
+
+
+
+if BUBBLE_TBL[i].x < BUBBLE_TBL[j].x then
+    BUBBLE_TBL[i].x = BUBBLE_TBL[i].x-2
+    BUBBLE_TBL[j].x = BUBBLE_TBL[j].x+2
+else
+    BUBBLE_TBL[i].x = BUBBLE_TBL[i].x+2
+    BUBBLE_TBL[j].x = BUBBLE_TBL[j].x-2
+end
+if BUBBLE_TBL[i].y < BUBBLE_TBL[j].y then
+    BUBBLE_TBL[i].y = BUBBLE_TBL[i].y-2
+    BUBBLE_TBL[j].y = BUBBLE_TBL[j].y+2
+else
+    BUBBLE_TBL[i].y = BUBBLE_TBL[i].y+2
+    BUBBLE_TBL[j].y = BUBBLE_TBL[j].y-2
+end
+
+
+
+
+BUBBLE_TBL[i].x = BUBBLE_TBL[i].x - overlap*(BUBBLE_TBL[i].x-BUBBLE_TBL[j].x)/distance
+BUBBLE_TBL[i].y = BUBBLE_TBL[i].y - overlap*(BUBBLE_TBL[i].y-BUBBLE_TBL[j].y)/distance
+BUBBLE_TBL[j].x = BUBBLE_TBL[j].x + overlap*(BUBBLE_TBL[i].x-BUBBLE_TBL[j].x)/distance
+BUBBLE_TBL[j].y = BUBBLE_TBL[j].y + overlap*(BUBBLE_TBL[i].y-BUBBLE_TBL[j].y)/distance

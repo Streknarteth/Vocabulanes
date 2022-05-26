@@ -2572,42 +2572,28 @@ function bubbleUpdate(dt)
             if BUBBLE_TBL[i].popped == false then
                 for j=i+1,#BUBBLE_TBL,1 do 
                     if BUBBLE_TBL[i]:bounce(BUBBLE_TBL[j]) then
-                        if BUBBLE_TBL[i].x < BUBBLE_TBL[j].x then
-                            BUBBLE_TBL[i].x = BUBBLE_TBL[i].x-2
-                            BUBBLE_TBL[j].x = BUBBLE_TBL[j].x+2
-                        else
-                            BUBBLE_TBL[i].x = BUBBLE_TBL[i].x+2
-                            BUBBLE_TBL[j].x = BUBBLE_TBL[j].x-2
-                        end
-                        if BUBBLE_TBL[i].y < BUBBLE_TBL[j].y then
-                            BUBBLE_TBL[i].y = BUBBLE_TBL[i].y-2
-                            BUBBLE_TBL[j].y = BUBBLE_TBL[j].y+2
-                        else
-                            BUBBLE_TBL[i].y = BUBBLE_TBL[i].y+2
-                            BUBBLE_TBL[j].y = BUBBLE_TBL[j].y-2
-                        end
-                        tempDX = BUBBLE_TBL[j].dx
-                        tempDY = BUBBLE_TBL[j].dy
-                        BUBBLE_TBL[j].dx = BUBBLE_TBL[i].dx
-                        BUBBLE_TBL[j].dy = BUBBLE_TBL[i].dy
-                        BUBBLE_TBL[i].dx = tempDX
-                        BUBBLE_TBL[i].dy = tempDY
+                        distance = (math.sqrt((BUBBLE_TBL[j].x - BUBBLE_TBL[i].x)^2+(BUBBLE_TBL[j].y - BUBBLE_TBL[i].y)^2))
+                        overlap = (distance - (BUBBLE_TBL[i].radius+BUBBLE_TBL[j].radius))*0.5
+                        BUBBLE_TBL[i].x = BUBBLE_TBL[i].x - overlap*(BUBBLE_TBL[i].x-BUBBLE_TBL[j].x)/distance
+                        BUBBLE_TBL[i].y = BUBBLE_TBL[i].y - overlap*(BUBBLE_TBL[i].y-BUBBLE_TBL[j].y)/distance
+                        BUBBLE_TBL[j].x = BUBBLE_TBL[j].x + overlap*(BUBBLE_TBL[i].x-BUBBLE_TBL[j].x)/distance
+                        BUBBLE_TBL[j].y = BUBBLE_TBL[j].y + overlap*(BUBBLE_TBL[i].y-BUBBLE_TBL[j].y)/distance
+                        bubbleVectors(i,j)
                     end
                 end
-
                 if BUBBLE_TBL[i].x-BUBBLE_TBL[i].radius < 0 then
                     BUBBLE_TBL[i].dx = -BUBBLE_TBL[i].dx
-                    BUBBLE_TBL[i].x = 2+BUBBLE_TBL[i].radius
+                    BUBBLE_TBL[i].x = BUBBLE_TBL[i].radius
                 elseif BUBBLE_TBL[i].x+BUBBLE_TBL[i].radius > VIRTUAL_WIDTH then
                     BUBBLE_TBL[i].dx = -BUBBLE_TBL[i].dx
-                    BUBBLE_TBL[i].x = VIRTUAL_WIDTH-2-BUBBLE_TBL[i].radius
+                    BUBBLE_TBL[i].x = VIRTUAL_WIDTH-BUBBLE_TBL[i].radius
                 end
                 if BUBBLE_TBL[i].y-BUBBLE_TBL[i].radius < 0 then
                     BUBBLE_TBL[i].dy = -BUBBLE_TBL[i].dy
-                    BUBBLE_TBL[i].y = 2+BUBBLE_TBL[i].radius
+                    BUBBLE_TBL[i].y = BUBBLE_TBL[i].radius
                 elseif BUBBLE_TBL[i].y+BUBBLE_TBL[i].radius > VIRTUAL_HEIGHT then
                     BUBBLE_TBL[i].dy = -BUBBLE_TBL[i].dy
-                    BUBBLE_TBL[i].y = VIRTUAL_HEIGHT-2-BUBBLE_TBL[i].radius
+                    BUBBLE_TBL[i].y = VIRTUAL_HEIGHT-BUBBLE_TBL[i].radius
                 end
                 BUBBLE_TBL[i]:update(dt)
             end
@@ -2669,3 +2655,68 @@ function bubbleCoords(i)
 end
 
 --  angle = math.atan(1.dy/1.dx)
+
+
+-- i = 1
+function bubbleVectors(i,j)
+    x2 = BUBBLE_TBL[j].x
+    x1 = BUBBLE_TBL[i].x
+    x3 = x2-x1
+
+    y2 = BUBBLE_TBL[j].y
+    y1 = BUBBLE_TBL[i].y
+    y3 = y2-y1
+
+    ---initial velocity vectors 
+    dx1 = BUBBLE_TBL[i].dx
+    dy1 = BUBBLE_TBL[i].dy
+    dx2 = BUBBLE_TBL[j].dx
+    dy2 = BUBBLE_TBL[j].dy
+
+    magnitude = math.sqrt((x3)^2+(y3)^2)
+
+    ---un (vector)
+    unit_vector_3x = x3/magnitude 
+    unit_vector_3y = y3/magnitude
+
+    ---ut (vector)
+    unit_tangent_3x = -unit_vector_3y
+    unit_tangent_3y = unit_vector_3x
+
+    
+
+    normal_scalar1x = dx1*unit_vector_3x
+    normal_scalar1y = dy1*unit_vector_3y
+    tangent_scalar1x = dx1*unit_tangent_3x
+    tangent_scalar1y = dy1*unit_tangent_3y
+    
+    normal_scalar2x = dx2*unit_vector_3x
+    normal_scalar2y = dy2*unit_vector_3y
+    tangent_scalar2x = dx2*unit_tangent_3x
+    tangent_scalar2y = dy2*unit_tangent_3y
+
+    normal_scalar1x_prime = normal_scalar2x
+    normal_scalar1y_prime = normal_scalar2y
+    normal_scalar2x_prime = normal_scalar1x
+    normal_scalar2y_prime = normal_scalar1y
+
+
+    normal_vector1x_prime = normal_scalar1x_prime*unit_vector_3x
+    normal_vector1y_prime = normal_scalar1y_prime*unit_vector_3y
+    normal_vector2x_prime = normal_scalar2x_prime*unit_vector_3x
+    normal_vector2y_prime = normal_scalar2y_prime*unit_vector_3y
+
+    tangent_vector1x_prime = tangent_scalar1x*unit_tangent_3x
+    tangent_vector1y_prime = tangent_scalar1y*unit_tangent_3y
+    tangent_vector2x_prime = tangent_scalar2x*unit_tangent_3x
+    tangent_vector2y_prime = tangent_scalar2y*unit_tangent_3y
+
+    BUBBLE_TBL[i].dx = tangent_vector1x_prime+normal_vector1x_prime
+    BUBBLE_TBL[i].dy = normal_vector1y_prime+tangent_vector1y_prime
+
+    BUBBLE_TBL[j].dx = normal_vector2x_prime+tangent_vector2x_prime
+    BUBBLE_TBL[j].dy = normal_vector2y_prime+tangent_vector2y_prime
+end
+
+
+
