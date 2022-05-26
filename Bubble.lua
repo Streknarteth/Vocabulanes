@@ -8,6 +8,9 @@ function Bubble:init(x,y,radius,dx,dy,letter)
     self.dy = dy
     self.letter = letter
     self.popped = false
+    self.R = math.random()
+    self.G = math.random()
+    self.B = math.random()
 end
 
 function Bubble:distance(paddle)
@@ -52,10 +55,10 @@ function Bubble:update(dt)
 end
 
 function Bubble:render()
-    love.graphics.setColor(1,0,0,1)
+    love.graphics.setColor(self.R,self.G,self.B,1)
     love.graphics.circle('line', self.x, self.y, self.radius)
     bubbleFont = love.graphics.newFont('ARLRDBD.ttf', self.radius, 'normal', 2)
     love.graphics.setFont(bubbleFont)
-    love.graphics.printf(self.letter, self.x-self.radius,self.y-(self.radius/2),2*self.radius,'center')
+    love.graphics.printf(self.letter, self.x-self.radius,self.y-(self.radius/2)-2,2*self.radius,'center')
 end
 

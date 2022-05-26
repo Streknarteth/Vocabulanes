@@ -2105,8 +2105,8 @@ OBSTACLE_TBL = {}
 BUBBLE_TBL = {}
 tempObstacledx = {}
 tempObstacledy = {}
-tempBubbledx = 0
-tempBubbledy = 0
+tempBubbledx = {}
+tempBubbledy = {}
 tempSlidedy = 0
 
 correctBubble = 1
@@ -2115,7 +2115,7 @@ testingword = ''
 testingtbl = {}
 newBubbleWord = true
 
-level = true
+level = false
 
 --[[
     Called just once at the beginning of the game; used to set up
@@ -2309,24 +2309,18 @@ function love.update(dt)
                 BUBBLE_TBL = {}
                 englishWord = bubbleWord()
                 testingword = englishWord
+                bubbleXCoord = {}
+                bubbleYCoord = {}
                 for i=1, string.len(TRANSLATION_TBL[englishWord]), 1 do 
-                    leftright = math.random(0,1)
-                    updown = math.random(0,1)
-                    if leftright == 0 then
-                        x = math.random(20,player1.x-40)
-                    else 
-                        x = math.random(player1.x+40,VIRTUAL_WIDTH-20)
-                    end
-                    if updown == 0 then
-                        y = math.random(20,player1.y-40)
-                    else 
-                        y = math.random(player1.y-40,VIRTUAL_HEIGHT-20)
-                    end
-                    BUBBLE_TBL[i] = Bubble(x,y,20,math.random(-90,90),math.random(-90,90),utf8_sub2(TRANSLATION_TBL[englishWord],i,i))
+                    bubbleCoords(i)   
+                end
+                for i=1, string.len(TRANSLATION_TBL[englishWord]), 1 do
+                    BUBBLE_TBL[i] = Bubble(bubbleXCoord[i],bubbleYCoord[i],20,math.random(-90,90),math.random(-90,90),utf8_sub2(TRANSLATION_TBL[englishWord],i,i))
                 end
                 newBubbleWord = false
             end
             for i=1,#BUBBLE_TBL,1 do
+                added = false
                 if BUBBLE_TBL[i]:collides(player1) then
                     if BUBBLE_TBL[i].letter == BUBBLE_TBL[correctBubble].letter then
                         sounds['correct']:play()
@@ -2343,7 +2337,7 @@ function love.update(dt)
                         correctBubble = 1
                         break
                     end
-                    if i == #BUBBLE_TBL then
+                    if correctBubble-1 == #BUBBLE_TBL then
                         newBubbleWord = true
                         player1Score = player1Score + 1
                         correctBubble = 1
@@ -2512,7 +2506,6 @@ function love.draw()
         love.graphics.setFont(smallFont)
         love.graphics.printf('Press return to start.', 0, VIRTUAL_HEIGHT-50, VIRTUAL_WIDTH,'center')
     elseif (gameState == 'play' or gameState == 'pause') and level == true then
-        love.graphics.printf('TRUE',0,VIRTUAL_HEIGHT/2,VIRTUAL_WIDTH,'center')
         love.graphics.setFont(scoreFont)
         if slide.reverse % 2 == 0 then
             love.graphics.setColor(255/255,195/255,0/255,255/255)
@@ -2534,6 +2527,10 @@ function love.draw()
             BUBBLE_TBL[i]:render()
         end
         love.graphics.setFont(scoreFont)
+        love.graphics.setColor(0, 1, 0, 255/255)
+        if correctBubble ~= 0 then
+            love.graphics.printf(TRANSLATION_TBL[englishWord]:sub(0,correctBubble-1),0,10,VIRTUAL_WIDTH,'center')
+        end
         love.graphics.printf(englishWord, 0, VIRTUAL_HEIGHT-50, VIRTUAL_WIDTH, 'center')
     elseif gameState == 'death' then
         love.graphics.setFont(scoreFont)
@@ -2618,3 +2615,57 @@ function bubbleUpdate(dt)
     end
 end
 
+function bubbleCoords(i)
+    
+    leftright = math.random(0,1)
+    updown = math.random(0,1)
+
+    if player1.x<81 then
+        x = math.random(player1.x+player1.width+60,VIRTUAL_WIDTH-20)
+    elseif player1.x>VIRTUAL_WIDTH-61 then
+        x = math.random(20,player1.x-60)
+    else
+        if leftright == 0 then
+            x = math.random(20,player1.x-60)
+        else 
+            x = math.random(player1.x+player1.width+60,VIRTUAL_WIDTH-20)
+        end
+    end
+
+    if player1.y<81 then 
+        y = math.random(player1.y+player1.height,VIRTUAL_HEIGHT-20)
+    elseif player1.y+player1.height>VIRTUAL_HEIGHT-81 then
+        y = math.random(20,player1.y-60)
+    else
+        if updown == 0 then
+            y = math.random(20,player1.y-60)
+        else 
+            y = math.random(player1.y+player1.height+60,VIRTUAL_HEIGHT-20)
+        end
+    end
+    
+    bubbleXCoord[i] = x
+    bubbleYCoord[i] = y
+
+    for j = 1, #bubbleXCoord,1 do 
+        if bubbleXCoord[j] < x then
+            if bubbleXCoord[j]+41 > x then
+                bubbleCoords(i)
+            end
+        elseif bubbleXCoord[j] > x then
+            if bubbleXCoord[j]-41 < x then
+                bubbleCoords(i)
+            end
+        elseif bubbleYCoord[j] < y then
+            if bubbleYCoord[j]+41 > y then
+                bubbleCoords(i)
+            end
+        elseif bubbleYCoord[j] > y then
+            if bubbleYCoord[j]-41 < y then
+                bubbleCoords(i)
+            end 
+        end
+    end
+end
+
+--  angle = math.atan(1.dy/1.dx)
