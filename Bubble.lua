@@ -43,7 +43,7 @@ function Bubble:collides(paddle)
 end
 
 function Bubble:bounce(bubble)
-    if (math.sqrt((bubble.x - self.x)^2+(bubble.y - self.y)^2)) > (self.radius+bubble.radius) then 
+    if ((bubble.x - self.x)^2+(bubble.y - self.y)^2) > (self.radius+bubble.radius)^2 then 
         return false
     end
     return true

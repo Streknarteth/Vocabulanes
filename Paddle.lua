@@ -72,5 +72,6 @@ end
     newest version of LÖVE2D, you can even draw rounded rectangles!
 ]]
 function Paddle:render()
+    love.graphics.setColor(155/255,155/255,155/255,1)
     love.graphics.rectangle('fill', self.x, self.y, self.width, self.height)
 end

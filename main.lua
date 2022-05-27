@@ -34,6 +34,8 @@ require 'Obstacle'
 
 require 'Bubble'
 
+require 'Boss'
+
 utf8 = require 'utf8'
 
 -- size of our actual window
@@ -2111,11 +2113,14 @@ tempSlidedy = 0
 
 correctBubble = 1
 
-testingword = ''
-testingtbl = {}
 newBubbleWord = true
 
-level = false
+bosstbl = {}
+start = 0
+newcorrect = true
+nearest = 1
+
+level = 1
 
 --[[
     Called just once at the beginning of the game; used to set up
@@ -2221,7 +2226,7 @@ function love.update(dt)
         swedishWords = distractors(TRANSLATION_TBL,englishWord)   
     end 
     if gameState == 'resuming' then
-        if level == true then
+        if level == 1 then
             slide.dy = tempSlidedy
             for i=1,#OBSTACLE_TBL,1 do 
                 OBSTACLE_TBL[i].dx = tempObstacledx[i]
@@ -2236,7 +2241,7 @@ function love.update(dt)
         gameState = 'play'
     end
     if gameState == 'play' then
-        if level == true then
+        if level == 1 then
             if slide:collides(player1) then
                 if slide.x+(slide.width/slide.num_options)*(slide.correct-1) < player1.x+player1.width/2 and
                 slide.x+(slide.width/slide.num_options)*(slide.correct) > player1.x+player1.width/2 then
@@ -2256,7 +2261,7 @@ function love.update(dt)
                         slide.reverse = slide.reverse + 1
                     end
                     if player1Score == 20 then
-                        level = false
+                        level = 2
                     end
                     if slide.reverse % 2 == 0 then
                         englishWord = randomkey(TRANSLATION_TBL)
@@ -2304,13 +2309,14 @@ function love.update(dt)
                 end
             end
         
-        else
+        elseif level == 2 then
             if newBubbleWord == true then
                 BUBBLE_TBL = {}
                 englishWord = bubbleWord()
                 testingword = englishWord
                 bubbleXCoord = {}
                 bubbleYCoord = {}
+                timer = 0
                 for i=1, string.len(TRANSLATION_TBL[englishWord]), 1 do 
                     bubbleCoords(i)   
                 end
@@ -2338,18 +2344,77 @@ function love.update(dt)
                         break
                     end
                     if correctBubble-1 == #BUBBLE_TBL then
-                        newBubbleWord = true
-                        player1Score = player1Score + 1
-                        correctBubble = 1
+                        timer = timer + 1
                     end
                     if player1Score == 30 then
-                        level = true
+                        level = 3
+                    end
+                end
+                if timer > 0 then 
+                    timer = timer + 1
+                    if timer == 70 then
+                        newBubbleWord = true
+                        player1Score = player1Score + 1
+                        correctBubble = 1 
+                    end
+                end  
+            end
+        elseif level == 3 then
+            if start == 0 then
+                player1.y = VIRTUAL_HEIGHT-10-player1.height
+                slide.num_options = 2
+                
+                bosstbl[1] = Boss(50,0,150,0,0,0,randomkey(TRANSLATION_TBL))
+                bosstbl[2] = Boss(VIRTUAL_WIDTH-150,0,VIRTUAL_WIDTH-50,0,0,0,randomkey(TRANSLATION_TBL))
+                bosstbl[3] = Boss(150,0,VIRTUAL_WIDTH-150,0,0,0,randomkey(TRANSLATION_TBL))
+                start = 1
+
+                englishWord = bosstbl[1].englishWord
+                correctPlace = math.random(1,3)
+                fakeWords = distractors(TRANSLATION_TBL,englishWord)
+            end
+
+            for i=1, math.min(start,#bosstbl), 1 do
+                bosstbl[i]:update(dt,player1)
+                bosstbl[i]:render()
+                if bosstbl[i]:collides(player1) then
+                    if player1.x >= (correctPlace-1)*VIRTUAL_WIDTH/3 and player1.x <= correctPlace*VIRTUAL_WIDTH then
+                        sounds['correct']:play()
+                        bosstbl[i]:reset()
+                        bosstbl[i].englishWord = randomkey(TRANSLATION_TBL)
+                        nearest = nearest + 1
+                        if nearest == 4 then
+                            nearest = 1
+                        end
+                        englishWord = bosstbl[nearest].englishWord
+                        correctPlace = math.random(1,3)
+                        fakeWords = distractors(TRANSLATION_TBL,englishWord)
+                        newcorrect = true
+                        player1Score = player1Score + 1
+                    else 
+                        sounds['death']:play()
+                        gameState = 'death'
+                        bosstbl = {}
+                        start = 0
+                        newcorrect = true
+                        nearest = 1
+                        level = 1
+                        break
                     end
                 end
             end
 
+
+
+            if start == 1 and bosstbl[1].y3 > player1.y/3 then
+                start = start + 1
+            end
+
+            if start == 2 and bosstbl[1].y3 > player1.y*2/3 then
+                start = start + 1
+            end
         end
-        if player1Score == 100 then
+        if player1Score == 40 then
             gameState = 'done'
         end
     end
@@ -2366,13 +2431,15 @@ function love.update(dt)
         else
             player1.dx = 0
         end
-
-        if love.keyboard.isDown('up') or love.keyboard.isDown('w') then
-            player1.dy = -PADDLE_SPEED
-        elseif love.keyboard.isDown('down') or love.keyboard.isDown('s') then
-            player1.dy = PADDLE_SPEED
-        else
-            player1.dy = 0
+        
+        if level ~= 3 then
+            if love.keyboard.isDown('up') or love.keyboard.isDown('w') then
+                player1.dy = -PADDLE_SPEED
+            elseif love.keyboard.isDown('down') or love.keyboard.isDown('s') then
+                player1.dy = PADDLE_SPEED
+            else
+                player1.dy = 0
+            end
         end
     else 
         player1.dx = 0
@@ -2381,7 +2448,7 @@ function love.update(dt)
 
     -- update our ball based on its DX and DY only if we're in play state;
     -- scale the velocity by dt so movement is framerate-independent
-    if (gameState == 'play' or gameState == 'pause') and level == true then
+    if (gameState == 'play' or gameState == 'pause') and level == 1 then
         slide:update(dt)
         for i = 1, #OBSTACLE_TBL,1 do
             OBSTACLE_TBL[i]:update(dt)
@@ -2390,7 +2457,7 @@ function love.update(dt)
 
     bubbleUpdate(dt)
 
-    if gameState == 'pausing' and level == true then
+    if gameState == 'pausing' and level == 1 then
         tempSlidedy = slide.dy
         slide.dy = 0
         for i=1,#OBSTACLE_TBL,1 do 
@@ -2402,7 +2469,7 @@ function love.update(dt)
         gameState = 'pause'
     end
 
-    if gameState == 'pausing' and level == false then
+    if gameState == 'pausing' and level == 2 then
         for i=1,#BUBBLE_TBL,1 do 
             tempBubbledx[i] = BUBBLE_TBL[i].dx
             tempBubbledy[i] = BUBBLE_TBL[i].dy
@@ -2505,7 +2572,7 @@ function love.draw()
         love.graphics.printf('2. Swedish', VIRTUAL_WIDTH/2, height, VIRTUAL_WIDTH/2, 'center')
         love.graphics.setFont(smallFont)
         love.graphics.printf('Press return to start.', 0, VIRTUAL_HEIGHT-50, VIRTUAL_WIDTH,'center')
-    elseif (gameState == 'play' or gameState == 'pause') and level == true then
+    elseif (gameState == 'play' or gameState == 'pause') and level == 1 then
         love.graphics.setFont(scoreFont)
         if slide.reverse % 2 == 0 then
             love.graphics.setColor(255/255,195/255,0/255,255/255)
@@ -2522,16 +2589,34 @@ function love.draw()
         for i = 1, #OBSTACLE_TBL,1 do
             OBSTACLE_TBL[i]:render()
         end
-    elseif (gameState == 'play' or gameState == 'pause') and level == false then
+    elseif (gameState == 'play' or gameState == 'pause') and level == 2 then
         for i = 1, #BUBBLE_TBL,1 do 
             BUBBLE_TBL[i]:render()
         end
         love.graphics.setFont(scoreFont)
         love.graphics.setColor(0, 1, 0, 255/255)
         if correctBubble ~= 0 then
-            love.graphics.printf(TRANSLATION_TBL[englishWord]:sub(0,correctBubble-1),0,10,VIRTUAL_WIDTH,'center')
+            love.graphics.printf(utf8_sub2(TRANSLATION_TBL[englishWord],0,correctBubble-1),0,10,VIRTUAL_WIDTH,'center')
         end
         love.graphics.printf(englishWord, 0, VIRTUAL_HEIGHT-50, VIRTUAL_WIDTH, 'center')
+    elseif (gameState =='play' or gameState == 'pause') and level == 3 then
+        for i = 1, #bosstbl,1 do
+            bosstbl[i]:render()
+        end
+        love.graphics.setFont(largeFont)
+        love.graphics.setColor(255/255, 0, 0, 255/255)
+
+        if newcorrect == true then
+            spacetable = {0,1,2}
+            space1 = table.remove(spacetable,correctPlace)
+            space2 = table.remove(spacetable,math.random(1,2))
+            space3 = table.remove(spacetable,1)
+            newcorrect = false
+        end
+
+        love.graphics.printf(TRANSLATION_TBL[englishWord], space1*VIRTUAL_WIDTH/3, VIRTUAL_HEIGHT-40, VIRTUAL_WIDTH/3, 'center')
+        love.graphics.printf(fakeWords[1], space2*VIRTUAL_WIDTH/3, VIRTUAL_HEIGHT-40, VIRTUAL_WIDTH/3, 'center')
+        love.graphics.printf(fakeWords[2], space3*VIRTUAL_WIDTH/3, VIRTUAL_HEIGHT-40, VIRTUAL_WIDTH/3, 'center')
     elseif gameState == 'death' then
         love.graphics.setFont(scoreFont)
         love.graphics.setColor(255/255, 0, 0, 255/255)
@@ -2546,7 +2631,7 @@ function love.draw()
         love.graphics.setFont(largeFont)
         love.graphics.printf('You win!',0, 10, VIRTUAL_WIDTH, 'center')
         love.graphics.setFont(smallFont)
-        love.graphics.printf('Press Enter to restart!', 0, 30, VIRTUAL_WIDTH, 'center')
+        love.graphics.printf('To unlock the skin for your language, enter this code:', 0, 30, VIRTUAL_WIDTH, 'center')
     end
 
     -- show the score before ball is rendered so it can move over the text
@@ -2567,7 +2652,7 @@ function displayScore()
 end
 
 function bubbleUpdate(dt)
-    if (gameState == 'play' or gameState == 'pause') and level == false then
+    if (gameState == 'play' or gameState == 'pause') and level == 2 then
         for i=1,#BUBBLE_TBL,1 do
             if BUBBLE_TBL[i].popped == false then
                 for j=i+1,#BUBBLE_TBL,1 do 
@@ -2654,10 +2739,6 @@ function bubbleCoords(i)
     end
 end
 
---  angle = math.atan(1.dy/1.dx)
-
-
--- i = 1
 function bubbleVectors(i,j)
     x2 = BUBBLE_TBL[j].x
     x1 = BUBBLE_TBL[i].x
