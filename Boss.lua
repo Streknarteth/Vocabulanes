@@ -37,14 +37,14 @@ function Boss:reset()
 end
 
 function Boss:update(dt,paddle)
-    self.y3 = math.max(self.y3+30*dt)
+    self.y3 = math.max(self.y3+20*dt)
     self.x3 = (paddle.x+paddle.width/2)
 end
 
 function Boss:render()
-    love.graphics.setColor(self.R,self.G,self.B,1)
+    love.graphics.setColor(self.R,self.G,self.B,0.8)
     love.graphics.polygon('fill', self.x1,self.y1,self.x2,self.y2,self.x3,self.y3)
-    love.graphics.setColor(1,1,1,1)
+    love.graphics.setColor(self.B,self.R,self.G,1)
     love.graphics.setFont(largeFont)
     love.graphics.printf(self.englishWord,self.x1,self.y1+10,self.x2-self.x1,'center')
 end

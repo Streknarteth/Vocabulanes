@@ -2118,13 +2118,9 @@ bosstbl = {}
 start = 0
 newcorrect = true
 nearest = 1
+fakeWords = {}
 
-level = 1
-
---[[
-    Called just once at the beginning of the game; used to set up
-    game objects, variables, etc. and prepare the game world.
-]]
+level = 3
 
 function love.load()
     -- set love's default filter to "nearest-neighbor", which essentially
@@ -2361,7 +2357,7 @@ function love.update(dt)
             end
         elseif level == 3 then
             if start == 0 then
-                player1.y = VIRTUAL_HEIGHT-10-player1.height
+                player1.y = VIRTUAL_HEIGHT-40-player1.height
                 slide.num_options = 2
                 
                 bosstbl[1] = Boss(50,0,150,0,0,0,randomkey(TRANSLATION_TBL))
@@ -2378,7 +2374,7 @@ function love.update(dt)
                 bosstbl[i]:update(dt,player1)
                 bosstbl[i]:render()
                 if bosstbl[i]:collides(player1) then
-                    if player1.x >= (correctPlace-1)*VIRTUAL_WIDTH/3 and player1.x <= correctPlace*VIRTUAL_WIDTH then
+                    if player1.x >= (correctPlace-1)*VIRTUAL_WIDTH/3 and player1.x <= correctPlace*VIRTUAL_WIDTH/3 then
                         sounds['correct']:play()
                         bosstbl[i]:reset()
                         bosstbl[i].englishWord = randomkey(TRANSLATION_TBL)
@@ -2394,6 +2390,7 @@ function love.update(dt)
                     else 
                         sounds['death']:play()
                         gameState = 'death'
+                        player1Score = 0
                         bosstbl = {}
                         start = 0
                         newcorrect = true
@@ -2614,9 +2611,11 @@ function love.draw()
             newcorrect = false
         end
 
+        love.graphics.setColor(bosstbl[nearest].B,bosstbl[nearest].R,bosstbl[nearest].G,1)
         love.graphics.printf(TRANSLATION_TBL[englishWord], space1*VIRTUAL_WIDTH/3, VIRTUAL_HEIGHT-40, VIRTUAL_WIDTH/3, 'center')
         love.graphics.printf(fakeWords[1], space2*VIRTUAL_WIDTH/3, VIRTUAL_HEIGHT-40, VIRTUAL_WIDTH/3, 'center')
         love.graphics.printf(fakeWords[2], space3*VIRTUAL_WIDTH/3, VIRTUAL_HEIGHT-40, VIRTUAL_WIDTH/3, 'center')
+
     elseif gameState == 'death' then
         love.graphics.setFont(scoreFont)
         love.graphics.setColor(255/255, 0, 0, 255/255)
