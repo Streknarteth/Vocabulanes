@@ -2257,6 +2257,7 @@ function love.update(dt)
                     end
                     if player1Score == 20 then
                         level = 2
+                        slide:reset()
                     end
                     if slide.reverse % 2 == 0 then
                         englishWord = randomkey(TRANSLATION_TBL)
@@ -2284,10 +2285,13 @@ function love.update(dt)
                 end
             end
             for i = 1, #OBSTACLE_TBL,1 do
-                if OBSTACLE_TBL[i].x+OBSTACLE_TBL[i].width < 0 or OBSTACLE_TBL[i].x > VIRTUAL_WIDTH or OBSTACLE_TBL[i].y > VIRTUAL_HEIGHT then
+                if OBSTACLE_TBL[i].y > VIRTUAL_HEIGHT then
                     OBSTACLE_TBL[i]:reset()
                     OBSTACLE_TBL[i].width = math.min(60,math.max(20,math.random(10,#OBSTACLE_TBL*15)))
                     OBSTACLE_TBL[i].width = math.min(60,math.max(20,math.random(10,#OBSTACLE_TBL*15)))
+                end
+                if OBSTACLE_TBL[i].x < 0 or OBSTACLE_TBL[i].x+OBSTACLE_TBL[i].width > VIRTUAL_WIDTH then
+                    OBSTACLE_TBL[i].dx = -OBSTACLE_TBL[i].dx
                 end
                 if OBSTACLE_TBL[i]:collides(player1) then
                     sounds['death']:play()
